@@ -71,10 +71,11 @@ int main()
 		int BracketFlag = 0;  // 遇到(++,遇到)--，最后不为0则为非法输入
 		int LegalInputFlag = 0;  //为合法输入判断 遇到数字++，遇到非括号运算符--，若最后不为1则为非法输入
 		char CurOperator = 0;
+		int EndJudge = 0;
 		ElemType DataPoped, Data2push;
-		printf("若输入表达式中没有数字则结束程序\n");
-		printf("请输入表达式(输入等于结束输入):");
-INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1)  //若有非法输入则转到INPUT
+		printf("输入单个‘-’或'+'结束程序\n");
+		printf("请输入表达式:");
+INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1|| (!Rule2OperatorInp(CurOperator) && (CurOperator != '\n')))  //若有非法输入则转到INPUT
 		{
 			clearLStack(pt);						//再次执行初始化操作
 			DestroyList(&HEAD);
@@ -90,7 +91,7 @@ INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1)  //若有非法输入则转到INPUT
 			{
 				Data2push.Num = CurNum;
 				//	pushLStack(pt, Data2push);
-				printf("%lf", CurNum);
+		//		printf("%lf", CurNum);
 				//链表存储后缀表达式
 				LNode* NODE = (LNode*)malloc(sizeof(LNode));
 				NODE->data.Num = CurNum;
@@ -99,8 +100,7 @@ INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1)  //若有非法输入则转到INPUT
 				//
 				LegalInputFlag++;    //数字，++
 			}
-			//	while (Rule2OperatorInp(CurOperator = getchar()))
-			if (scanf(" %c", &CurOperator))  //输入字符，没有被读入的非字符会留在缓冲区
+			if (scanf("%c", &CurOperator))  //输入字符，没有被读入的非字符会留在缓冲区
 			{
 				if (Rule2OperatorInp(CurOperator))  //判断是否是运算符
 				{
@@ -109,14 +109,21 @@ INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1)  //若有非法输入则转到INPUT
 					{
 						BracketFlag++;  //左括号++
 						pushLStack(pt, Data2push);  //左括号直接压栈
-						printf("%c", CurOperator);
+			//			printf("%c", CurOperator);
 					}
 					else if (CurOperator == ')')
 					{
 						BracketFlag--;  //右括号--
-						if (BracketFlag < 0)  //如果此时BracketFlag小于0， 左括号数多于右括号数，为非法输入
+			//			printf("%c", CurOperator);
+						if (BracketFlag < 0)  //如果此时BracketFlag小于0， 右括号数多于左括号数，为非法输入
+						{
+							printf("请输入正确的表达式:");
+							while (getchar() != '\n'); //清空缓存区到发现换行符
 							goto INPUT;
-						printf("%c", CurOperator);
+						}
+						if (BracketFlag == 0 && LegalInputFlag == 1) //处理右括号位于表达式尾部时的情况,若在尾部，则无法读取换行符
+							EndJudge = 1;      //若到达表达式尾部 则EndJudge置1
+							//			printf("%c", CurOperator);
 						while (CurOperator != '(')    //出栈直至发现(
 						{
 							popLStack(pt, &DataPoped);
@@ -126,14 +133,28 @@ INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1)  //若有非法输入则转到INPUT
 							InsertList(TEMP, NODE);
 							TEMP = NODE;
 							//
-							CurOperator = pt->top->data.Operator;  //赋值当前运算符为栈顶的运算符
+							if(pt->top!=NULL)
+								CurOperator = pt->top->data.Operator;  //赋值当前运算符为栈顶的运算符
+							else
+								break;
 						}
-						popLStack(pt, &DataPoped); //最后将(出栈
+						if (!popLStack(pt, &DataPoped)) //最后将(出栈
+						{
+							printf("请输入正确的表达式:");
+							while (getchar() != '\n'); //清空缓存区到发现换行符
+							goto INPUT;
+						}
 					}
 					else  //如果不为 ( )
 					{
-						printf("%c", CurOperator);
+			//			printf("%c", CurOperator);
 						LegalInputFlag--;  //遇到运算符--
+						if (LegalInputFlag < 0)
+						{
+							printf("请输入正确的表达式:");
+							while (getchar() != '\n'); //清空缓存区到发现换行符
+							goto INPUT;
+						}
 						if (PriorityRule(pt, CurOperator))  //如果该运算符优先级大于栈顶的运算符
 							pushLStack(pt, Data2push);  //压栈
 						else
@@ -152,29 +173,36 @@ INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1)  //若有非法输入则转到INPUT
 						}
 					}
 				}
-				else if (CurOperator == '=')  //‘=’标志输入结束
+				else if (!Rule2OperatorInp(CurOperator) && (CurOperator != '\n'))
 				{
-					if (HEAD->next == NULL)   //判断是否为空的输入，是则结束程序
-						goto END;
-					if (BracketFlag != 0||LegalInputFlag != 1)  //非法输入转到INPUT
-					{
-						printf("\n请输入正确的表达式(输入等于结束输入):");
-						goto INPUT;
-					}
-					while (pt->top != NULL)   //将栈中剩余的运算符转到链表中
-					{
-						popLStack(pt, &DataPoped);
-						LNode* NODE = (LNode*)malloc(sizeof(LNode));
-						NODE->data.Operator = DataPoped.Operator;
-						InsertList(TEMP, NODE);
-						TEMP = NODE;
-					}
-					NODE->next = NULL;   
-					goto RESULT;    //无异常转到RESULT求和
+					while (getchar() != '\n'); //清空缓存区到发现换行符
+					printf("请输入正确的表达式:");
+					goto INPUT;
 				}
 			}
+			if (CurOperator == '\n' || EndJudge == 1)
+			{
+				if (HEAD->next == NULL)   //判断是否为空的输入，是则结束程序
+					goto END;
+				if (BracketFlag != 0 || LegalInputFlag != 1)  //非法输入转到INPUT
+				{
+					while (getchar() != '\n');   //清空缓存区到发现换行符
+					printf("\n请输入正确的表达式:");
+					goto INPUT;
+				}
+				while (pt->top != NULL)   //将栈中剩余的运算符转到链表中
+				{
+					popLStack(pt, &DataPoped);
+					LNode* NODE = (LNode*)malloc(sizeof(LNode));
+					NODE->data.Operator = DataPoped.Operator;
+					InsertList(TEMP, NODE);
+					TEMP = NODE;
+				}
+				NODE->next = NULL;
+				goto RESULT;    //无异常转到RESULT求和
+			}
 		}
-RESULT:	printf("<-中缀表达式\n");
+RESULT://	printf("<-中缀表达式\n");
 		TraverseList(HEAD);   //输出后缀表达式
 		printf("<-后缀表达式\n");
 		printf("结果为%lf\n", CalcResult(pt, HEAD, &DataPoped));  //输出结果
