@@ -73,7 +73,7 @@ int main()
 		char CurOperator = 0;
 		int EndJudge = 0;
 		ElemType DataPoped, Data2push;
-		printf("输入单个‘-’或'+'结束程序\n");
+		printf("输入'='结束程序\n");
 		printf("请输入表达式:");
 INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1|| (!Rule2OperatorInp(CurOperator) && (CurOperator != '\n')))  //若有非法输入则转到INPUT
 		{
@@ -121,8 +121,11 @@ INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1|| (!Rule2OperatorInp(CurOper
 							while (getchar() != '\n'); //清空缓存区到发现换行符
 							goto INPUT;
 						}
-						if (BracketFlag == 0 && LegalInputFlag == 1) //处理右括号位于表达式尾部时的情况,若在尾部，则无法读取换行符
+			/*			if (BracketFlag == 0 && LegalInputFlag == 1 ) //处理右括号位于表达式尾部时的情况,若在尾部，则无法读取换行符
+						{
 							EndJudge = 1;      //若到达表达式尾部 则EndJudge置1
+						}*/
+							
 							//			printf("%c", CurOperator);
 						while (CurOperator != '(')    //出栈直至发现(
 						{
@@ -173,14 +176,14 @@ INPUT:  if (BracketFlag != 0 || LegalInputFlag != 1|| (!Rule2OperatorInp(CurOper
 						}
 					}
 				}
-				else if (!Rule2OperatorInp(CurOperator) && (CurOperator != '\n'))
+				else if (!Rule2OperatorInp(CurOperator) && (CurOperator != '='))
 				{
-					while (getchar() != '\n'); //清空缓存区到发现换行符
+					while (getchar() != '='); //清空缓存区到发现换行符
 					printf("请输入正确的表达式:");
 					goto INPUT;
 				}
 			}
-			if (CurOperator == '\n' || EndJudge == 1)
+			if (CurOperator == '=')
 			{
 				if (HEAD->next == NULL)   //判断是否为空的输入，是则结束程序
 					goto END;
